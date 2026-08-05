@@ -1,0 +1,20 @@
+{
+  "name": "ai-cold-mail-generator-be",
+  "version": "1.0.0",
+  "description": "AI COLD MAIL GENERATOR",
+  "keywords": [
+    "AI",
+    "PROJECT"
+  ],
+  "license": "ISC",
+  "author": "Naman",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
