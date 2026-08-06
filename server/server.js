@@ -23,9 +23,9 @@ app.use('/api/auth', authRoutes);
 
 
 // Sample route
-// app.get('/', (req, res) => {
-//   res.send('Hello, World!');
-// });
+app.get('/', (req, res) => {
+   res.send('Hello, World!');
+ });
 
 // Start the server
 app.listen(port, () => {

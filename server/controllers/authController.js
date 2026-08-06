@@ -23,7 +23,7 @@ exports.registerUser= async (req, res) => {
 
 
    const user = await User.create({ username, email, password,otp,otpExpiry });
-  res.status(201).json({ message: 'User registered successfully', user });
+  res.status(201).json({ message: 'User registered successfully', user: { username: user.username, email: user.email } });
 
    // otp validation 
    try{
@@ -34,6 +34,8 @@ exports.registerUser= async (req, res) => {
    }
 
  }
- catch(error) {
-}
+  catch (error) {
+   console.error("Error in registerUser:", error);
+   res.status(500).json({ message: "Internal server error", error: error.message });
+ }
 }
