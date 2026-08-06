@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use('/api/auth', authRoutes);
-//app.use('/api/ai', aiRoutes);
+app.use('/api/ai', aiRoutes);
 
 
 
