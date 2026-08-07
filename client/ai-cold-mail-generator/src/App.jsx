@@ -1,10 +1,10 @@
 
-
+import {useAuth} from './context/AuthContext';
 
 
 
 function App() {
-  
+   const {user, loading} = useAuth();
 
   return (
     <>
