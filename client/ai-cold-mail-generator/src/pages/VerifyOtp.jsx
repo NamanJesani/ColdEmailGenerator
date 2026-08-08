@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import api from '../utils/api';
@@ -11,21 +11,28 @@ const VerifyOtp = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    const userId = location.state?.userId;
     const email = location.state?.email;
 
-    if (!userId) {
-        navigate('/signup');
-        return null;
-    }
+    // Safely perform redirection inside useEffect
+    useEffect(() => {
+        if (!email) {
+            toast.error('Please sign up first');
+            navigate('/signup');
+        }
+    }, [email, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const { data } = await api.post('/auth/verify-otp', { userId, otp });
-            login(data);
-            toast.success('Email verified successfully!');
+            // Send email and otp to match authController.verifyOtp
+            const { data } = await api.post('/auth/verify-otp', { email, otp });
+            
+            if (data.token) {
+                login(data.token);
+            }
+            
+            toast.success(data.message || 'Email verified successfully!');
             navigate('/dashboard');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Verification failed');
@@ -33,6 +40,8 @@ const VerifyOtp = () => {
             setLoading(false);
         }
     };
+
+    if (!email) return null;
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

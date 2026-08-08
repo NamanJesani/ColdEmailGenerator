@@ -16,9 +16,15 @@ const Login = () => {
         setLoading(true);
         try {
             const { data } = await api.post('/auth/login', { email, password });
-            login(data);
-            toast.success('Logged in successfully!');
-            navigate('/dashboard');
+            
+            // ✅ Send the token directly or pass the structured auth data
+            if (data?.token) {
+                login(data.token); 
+                toast.success('Logged in successfully!');
+                navigate('/dashboard');
+            } else {
+                toast.error('Token not received');
+            }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Login failed');
         } finally {

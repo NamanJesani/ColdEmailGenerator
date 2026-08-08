@@ -1,33 +1,63 @@
-// env variables
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const port = process.env.PORT || 3000;
+const dotenv = require('dotenv');
+const path = require('path');
+
+const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const aiRoutes = require('./routes/aiRoutes');
-const connectDB = require('./config/db');
 
-// connect to MongoDB
+// Load environment variables
+dotenv.config();
+
+// Validate required environment variables
+const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET', 'GROQ_API_KEY'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+    console.error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
+    process.exit(1);
+}
+
+// Connect to MongoDB
 connectDB();
 
 const app = express();
 
-// Middleware to parse JSON requests
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}));
+
 app.use(express.json());
-app.use(cors());
+app.use(express.urlencoded({ extended: true }));
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 
+// Absolute path to client build folder
+const __dirnamePath = path.resolve();
+const clientBuildPath = path.join(__dirnamePath, '..', 'client', 'dist');
+
+// Serve static files
+app.use(express.static(clientBuildPath));
+
+// For any route not starting with /api, send index.html
+app.get(/(.*)/, (req, res) => {
+    if (!req.path.startsWith('/api')) {
+        res.sendFile(path.join(clientBuildPath, 'index.html'));
+    }
+});
 
 
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+});
 
-// Sample route
-app.get('/', (req, res) => {
-   res.send('Hello, World!');
- });
+const PORT = process.env.PORT || 3000;
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });

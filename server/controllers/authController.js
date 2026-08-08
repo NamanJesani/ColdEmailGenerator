@@ -28,8 +28,8 @@ exports.registerUser= async (req, res) => {
     const otpExpiry= new Date(Date.now() + 10 * 60 * 1000); // OTP valid for 10 minutes;
 
 
-   const user = await User.create({ username, email, password,otp,otpExpiry });
-  res.status(201).json({ message: 'User registered successfully', user: { username: user.username, email: user.email } });
+   const user = await User.create({ username, email, password, otp, otpExpiry });
+  res.status(201).json({ message: 'User registered successfully', userId: user._id, user: { username: user.username, email: user.email } });
 
    // otp validation 
    try{
