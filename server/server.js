@@ -7,10 +7,8 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 
-// Load environment variables
 dotenv.config();
 
-// Validate required environment variables
 const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET', 'GROQ_API_KEY'];
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
@@ -19,14 +17,12 @@ if (missingEnvVars.length > 0) {
     process.exit(1);
 }
 
-// Connect to MongoDB
 connectDB();
 
 const app = express();
 
-// Allow configured FRONTEND_URL or accept same-origin requests in production
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || '*',
     credentials: true
 }));
 
@@ -37,26 +33,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 
-// Correct absolute path to client build folder
-const __dirnamePath = path.resolve();
-const clientBuildPath = path.join(__dirnamePath, 'client', 'ai-cold-mail-generator', 'dist');
+// Absolute path to frontend build output
+const clientBuildPath = path.join(__dirname, '..', 'client', 'ai-cold-mail-generator', 'dist');
 
-// Serve static assets from Vite build output
+// Serve static build assets
 app.use(express.static(clientBuildPath));
 
-// Fallback to React index.html for non-API client routes
-app.get('*', (req, res, next) => {
+// Fallback for SPA routing - valid Express pattern
+app.use((req, res, next) => {
     if (req.path.startsWith('/api')) {
         return next();
     }
-    res.sendFile(path.join(clientBuildPath, 'index.html'), (err) => {
-        if (err) {
-            res.status(500).send(err);
-        }
-    });
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
-// Error handling middleware
+// Global error handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ message: 'Server Error', error: err.message });
