@@ -24,33 +24,39 @@ connectDB();
 
 const app = express();
 
+// Allow configured FRONTEND_URL or accept same-origin requests in production
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 
-// Absolute path to client build folder
+// Correct absolute path to client build folder
 const __dirnamePath = path.resolve();
-const clientBuildPath = path.join(__dirnamePath, '..', 'client', 'dist');
+const clientBuildPath = path.join(__dirnamePath, 'client', 'ai-cold-mail-generator', 'dist');
 
-// Serve static files
+// Serve static assets from Vite build output
 app.use(express.static(clientBuildPath));
 
-// For any route not starting with /api, send index.html
-app.get(/(.*)/, (req, res) => {
-    if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(clientBuildPath, 'index.html'));
+// Fallback to React index.html for non-API client routes
+app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+        return next();
     }
+    res.sendFile(path.join(clientBuildPath, 'index.html'), (err) => {
+        if (err) {
+            res.status(500).send(err);
+        }
+    });
 });
 
-
+// Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ message: 'Server Error', error: err.message });
